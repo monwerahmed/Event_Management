@@ -27,4 +27,8 @@ class Event extends Model
         return $cap-$in;
 
     }
+
+    public static function liveCrowd(){
+        return CheckIn::count();
+    }
 }

@@ -7,6 +7,8 @@
 
 <h1>Add Attendee for Event: {{ $event->name }}</h1>
 
+
+
 <form method="POST" action="{{ route('attendees.store', $event->id) }}">
     @csrf
 
@@ -17,6 +19,10 @@
     <input type="email" name="email" required><br><br>
 
     <button type="submit">Add Attendee</button>
+    
+@if(session('error'))
+    <p style="color: red;">{{ session('error') }}</p>
+@endif
 </form>
 
 </body>

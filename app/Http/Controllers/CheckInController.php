@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\CheckIn;
+use App\Models\CheckOut;
 
 class CheckInController extends Controller
 {
@@ -14,14 +15,21 @@ class CheckInController extends Controller
         $request->validate([
             'attendee_mail'=>'required|email'
         ]);
-          
+
+        if($request->action =='checkin'){
+
         $event = Event::Find($id);
         $attendee_mail = $request->attendee_mail;
         $exists = CheckIn::where('event_id',$id)->where('attendee_mail',$attendee_mail)->exists();
+        $exists2 = CheckOut::where('event_id' , $id)->where('attendee_mail',$attendee_mail)->exists();
         
-        if($exists){
+        if($exists2)  return back()->with('error','This attendee already checked out');
+
+        if($exists ){
             return back()->with('error','This attendee already checked in');
         }
+        
+
         $find=Attendee::where('event_id',$id)->where('email',$attendee_mail)->exists();
 
         if(!$find) return back()->with('error','This candidate is not registered');
@@ -41,6 +49,33 @@ class CheckInController extends Controller
      
         //dd('Controllerr Checked');
         return back()->with('success','Check-in successfull');
+    }
+
+    if($request->action == "checkout"){
+
+        $event = Event::Find($id);
+        $attendee_mail = $request->attendee_mail;
+
+        $exists2 = CheckOut::where('event_id' , $id)->where('attendee_mail',$attendee_mail)->exists();
+        
+        if($exists2)  return back()->with('error','This attendee already checked out');
+
+        $exists = CheckIn::where('event_id',$id)->where('attendee_mail',$attendee_mail)->exists();
+
+        if(!$exists) return back()->with('error','This email is not checked in yet!');
+        if($exists){
+            CheckOut::create([
+            'event_id' => $id,
+            'attendee_mail' => $attendee_mail,
+            'check_out' => true,
+        ]);
+             CheckIn::where ('event_id', $id)
+                     ->where('attendee_mail', $attendee_mail)
+                     ->delete();
+
+            return back()->with('success', 'checked Out Successfully');
+        }
+    }
                           
     }
 }
